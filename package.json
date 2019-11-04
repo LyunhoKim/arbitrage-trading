@@ -1,0 +1,29 @@
+{
+  "name": "arbitragesbot",
+  "version": "0.0.1",
+  "description": "artbitrage trading bot",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "author": "Lyunho Kim",
+  "license": "ISC",
+  "dependencies": {
+    "ccxt": "^1.19.4"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/LyunhoKim/arbitrage-trading.git"
+  },
+  "keywords": [
+    "cryto",
+    "arbitrage",
+    "trading"
+  ],
+  "bugs": {
+    "url": "https://github.com/LyunhoKim/arbitrage-trading/issues"
+  },
+  "homepage": "https://github.com/LyunhoKim/arbitrage-trading#readme"
+}
