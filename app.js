@@ -5,6 +5,7 @@ const async = require('async');
 const express = require('express');
 
 const exchangesConfig = require('./config/exchangesConfig.json');
+const asHtmlTable = require('./as-html-table');
 // const pairs = require('pairs.json');
 const pair = 'BTC/KRW';
 
@@ -82,11 +83,9 @@ async (req, res) => {
           taker: markets['coinone'].taker
         }
     }
-      // console.log(orders);
-      // res.send(orders);
-      res.json(orders);
-      console.log(orders);
-      // res.json(`@@@@@@@@@@@@@@@@@@@@@@@@`);
+      
+      
+      
 
       for(let i = 0; i<orders.length; i++) {
         for(let j = i+1; j<orders.length; j++) {
@@ -123,14 +122,50 @@ async (req, res) => {
         }
       }
       // res.json('aaaaaaa');
-      console.log("##### response #####");
-      // res.json(orders);
-      
+      console.log("##### response #####");      
+      console.log(orders);
+      // res.send(orders);   
+      // asHtmlTable(order, (html) => {
+      //   res.send(html);
+      // });
+      let html = `
+    <!DOCTYPE html>
+<html>
+<body>
+`;
+  let table = `<table border='1'>
+                <tr>
+                  <th>Exchanges</th>
+                  <th>매수가</th>
+                  <th>매수량</th>
+                  <th>매도가</th>
+                  <th>매도량</th>
+                  <th>Maker</th>
+                  <th>Taker</th>
+                </tr>`;
+                for(const key in orders) {
+                  table += `<tr>                  
+                <td>${key}</td>
+                <td>${orders[key].topBidPrice}</td>
+                <td>${orders[key].topBidAmount}</td>
+                <td>${orders[key].topAskPrice}</td>
+                <td>${orders[key].topAskAmount}</td>
+                <td>${orders[key].taker}</td>
+                <td>${orders[key].maker}</td>
 
+              </tr>`;
+
+                }
+  
+  html += table;
+  html += `</table></body>
+  </html>`;
+      res.send(html)
+      
     }
   )
-}
-);
+});
+
 
 
 app.listen(8080, () => {
