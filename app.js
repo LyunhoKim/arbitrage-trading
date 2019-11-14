@@ -2,6 +2,7 @@
 
 const ccxt = require('ccxt');
 const async = require('async');
+const express = require('express');
 
 const exchangesConfig = require('./config/exchangesConfig.json');
 // const pairs = require('pairs.json');
@@ -10,11 +11,13 @@ const pair = 'BTC/KRW';
 
 let exchanges = {};
 let markets = [];
+const app = express();
 
 // asks 매도
 // bids 매수
 
-(async () => {  
+app.get('/', 
+async (req, res) => {  
 
   // 마켓 정보 조회
   for (let exchange of exchangesConfig) {    
@@ -51,39 +54,44 @@ let markets = [];
       }     
       
 
-      let orders = [];
-      orders['upbit'] = {
-        topAskPrice: result[0].asks[0][0],
-        topAskAmount: result[0].asks[0][1],
-        topBidPrice: result[0].bids[0][0],
-        topBidAmount: result[0].bids[0][1],
-        maker: markets['upbit'].maker,
-        taker: markets['upbit'].taker
-      };
+      let orders = {
+        upbit: {
+          topAskPrice: result[0].asks[0][0],
+          topAskAmount: result[0].asks[0][1],
+          topBidPrice: result[0].bids[0][0],
+          topBidAmount: result[0].bids[0][1],
+          maker: markets['upbit'].maker,
+          taker: markets['upbit'].taker
+        },
 
-      orders['bithumb'] = {
-        topAskPrice: result[1].asks[0][0],
-        topAskAmount: result[1].asks[0][1],
-        topBidPrice: result[1].bids[0][0],
-        topBidAmount: result[1].bids[0][1],
-        maker: markets['bithumb'].maker,
-        taker: markets['bithumb'].taker
-      };
+        bithumb: {
+          topAskPrice: result[1].asks[0][0],
+          topAskAmount: result[1].asks[0][1],
+          topBidPrice: result[1].bids[0][0],
+          topBidAmount: result[1].bids[0][1],
+          maker: markets['bithumb'].maker,
+          taker: markets['bithumb'].taker
+        },
 
-      orders['coinone'] = {
-        topAskPrice: result[2].asks[0][0],
-        topAskAmount: result[2].asks[0][1],
-        topBidPrice: result[2].bids[0][0],
-        topBidAmount: result[2].bids[0][1],
-        maker: markets['coinone'].maker,
-        taker: markets['coinone'].taker
-      };
+        coinone: {
+          topAskPrice: result[2].asks[0][0],
+          topAskAmount: result[2].asks[0][1],
+          topBidPrice: result[2].bids[0][0],
+          topBidAmount: result[2].bids[0][1],
+          maker: markets['coinone'].maker,
+          taker: markets['coinone'].taker
+        }
+    }
+      // console.log(orders);
+      // res.send(orders);
+      res.json(orders);
       console.log(orders);
+      // res.json(`@@@@@@@@@@@@@@@@@@@@@@@@`);
 
       for(let i = 0; i<orders.length; i++) {
         for(let j = i+1; j<orders.length; j++) {
           let diff = orders[i].topAskPrice - orders[j].topBidPrice;
-          if(2000 < diff) {
+          if(1000 < diff) {
             let minAmount = Math.min(orders[i].topAskAmount, orders[j].topBidAmount);
 
             // minAmount 만큼 수량으로 거래 요청
@@ -98,7 +106,7 @@ let markets = [];
           }
 
           diff = orders[j].topAskPrice - orders[i].topBidPrice;
-          if(2000 < diff) {
+          if(1000 < diff) {
             let minAmount = Math.min(orders[j].topAskAmount, orders[i].topBidAmount);
 
             // minAmount 만큼 수량으로 거래 요청
@@ -110,84 +118,21 @@ let markets = [];
 
             console.log("##### Traded #####");
             console.log('Result: ', askResult - bidResult);
+            
           }
         }
       }
+      // res.json('aaaaaaa');
+      console.log("##### response #####");
+      // res.json(orders);
+      
+
     }
   )
-})();
+}
+);
 
 
-// (() => {
-//     async.parallel([
-//         function (callback) {
-//             callback(null, 'resultA');
-//         },
-
-//         function (callback) {
-//             callback(null, 'resultB');
-//         },
-
-//         function (callback) {
-//             callback(null, 'resultC');
-//         }
-//     ],
-//         function (err, results) {
-//             if (err) console.log(err);
-//             console.log(results)
-//             // handle resultC
-//         }
-//     );
-// }) ()
-
-
-
-// (() => {
-//     // console.log("########################test");
-
-//     console.log("222222222222222222222222222222222");
-
-// })();
-
-// const getOrderBook = (exchange, pair, callback) => {
-//     return exchange.fetchOrderBook(pair);
-// }
-
-// function generateGettingOrderBookTask() {
-//     let task = [];
-//     for(let exchange of exchanges) {
-//         task.push(getOrderBook(exchange, pair));
-//     }
-//     return task;
-// }
-
-
-
-
-// (() => { 
-//     console.log("33333333333333333333333333333333333333");
-//     // console.log(exchanges);
-
-// // 오더북 로딩 (병렬)
-
-
-// // 조건 검사
-// // 
-
-// // 거래 요청 (병렬)
-
-// }) ();
-
-
-
-
-// const ccxt = require('ccxt');
-
-// (async () => {
-//     const upbit = new ccxt.upbit()
-//     await upbit.loadMarkets()
-//     // const orderBook = await fetchLOrderBook('BTC/KRW');
-//     console.log(upbit.id, upbit.markets['BTC/KRW']);
-//     // upbit.fetchL2OrderBook
-
-// }) ();
+app.listen(8080, () => {
+  console.log(`API Gateway listening on port 8080!`);
+});
