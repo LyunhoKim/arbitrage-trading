@@ -86,10 +86,10 @@ async (req, res) => {
       
       
       
-
+      let tradeTarget = {};
       for(let i = 0; i<orders.length; i++) {
         for(let j = i+1; j<orders.length; j++) {
-          let diff = orders[i].topAskPrice - orders[j].topBidPrice;
+          let diff = orders[j].topBidPrice - orders[i].topAskPrice;
           if(1000 < diff) {
             let minAmount = Math.min(orders[i].topAskAmount, orders[j].topBidAmount);
 
@@ -97,14 +97,15 @@ async (req, res) => {
             // requestTrade 1 i거래소에서 매수
             // requestTrade 2 j거래소에서 매도
 
-            let askResult = orders[i].topAskPrice * minAmount * (1 - orders[i].taker);
             let bidResult = orders[j].topBidPrice * minAmount * (1 - orders[j].taker);
+            let askResult = orders[i].topAskPrice * minAmount * (1 - orders[i].taker);
 
+            tradeTarget = 
             console.log("##### Traded #####");
             console.log('Result: ', askResult - bidResult);
           }
 
-          diff = orders[j].topAskPrice - orders[i].topBidPrice;
+          diff = orders[i].topBidPrice - orders[j].topAskPrice;
           if(1000 < diff) {
             let minAmount = Math.min(orders[j].topAskAmount, orders[i].topBidAmount);
 
