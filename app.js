@@ -82,40 +82,76 @@ async (req, res) => {
           maker: markets['coinone'].maker,
           taker: markets['coinone'].taker
         }
-    }
+    };
+
+    let ordersArray = [];
+    ordersArray.push({
+        symbol: 'upbit',
+        topAskPrice: result[0].asks[0][0],
+        topAskAmount: result[0].asks[0][1],
+        topBidPrice: result[0].bids[0][0],
+        topBidAmount: result[0].bids[0][1],
+        maker: markets['upbit'].maker,
+        taker: markets['upbit'].taker
+      });
+
+      ordersArray.push({
+        symbol: 'bithumb',
+        topAskPrice: result[1].asks[0][0],
+        topAskAmount: result[1].asks[0][1],
+        topBidPrice: result[1].bids[0][0],
+        topBidAmount: result[1].bids[0][1],
+        maker: markets['bithumb'].maker,
+        taker: markets['bithumb'].taker
+      });
+
+      ordersArray.push({
+        symbol: 'coinone',
+        topAskPrice: result[2].asks[0][0],
+        topAskAmount: result[2].asks[0][1],
+        topBidPrice: result[2].bids[0][0],
+        topBidAmount: result[2].bids[0][1],
+        maker: markets['coinone'].maker,
+        taker: markets['coinone'].taker
+      });
+    
       
       
       
-      let tradeTarget = {};
-      for(let i = 0; i<orders.length; i++) {
-        for(let j = i+1; j<orders.length; j++) {
-          let diff = orders[j].topBidPrice - orders[i].topAskPrice;
-          if(1000 < diff) {
-            let minAmount = Math.min(orders[i].topAskAmount, orders[j].topBidAmount);
+      let tradeTarget = [];
+      for(let i = 0; i<ordersArray.length; i++) {
+        for(let j = i+1; j<ordersArray.length; j++) {
+          let diff = ordersArray[j].topBidPrice - ordersArray[i].topAskPrice;
+          console.log(`diff: ${diff}, ${ordersArray[j].symbol} - ${ordersArray[i].symbol}`);
+          if(1000 <= diff) {
+            let minAmount = Math.min(ordersArray[i].topAskAmount, ordersArray[j].topBidAmount);
 
             // minAmount 만큼 수량으로 거래 요청
             // requestTrade 1 i거래소에서 매수
             // requestTrade 2 j거래소에서 매도
 
-            let bidResult = orders[j].topBidPrice * minAmount * (1 - orders[j].taker);
-            let askResult = orders[i].topAskPrice * minAmount * (1 - orders[i].taker);
+            let bidResult = ordersArray[j].topBidPrice * minAmount * (1 - ordersArray[j].taker);
+            let askResult = ordersArray[i].topAskPrice * minAmount * (1 - ordersArray[i].taker);
 
-            tradeTarget = 
+            //예상 수익                    
+            tradeTarget.push(`거래 시 예상 수익: ${bidResult - askResult}, 시세차: ${diff}, ${ordersArray[j].symbol}매수가(${ordersArray[j].topBidPrice}) - ${ordersArray[i].symbol}매도가(${ordersArray[i].topAskPrice}), 거래량${minAmount}`);
             console.log("##### Traded #####");
             console.log('Result: ', askResult - bidResult);
           }
 
-          diff = orders[i].topBidPrice - orders[j].topAskPrice;
-          if(1000 < diff) {
-            let minAmount = Math.min(orders[j].topAskAmount, orders[i].topBidAmount);
+          diff = ordersArray[i].topBidPrice - ordersArray[j].topAskPrice;
+          console.log(`diff: ${diff}, ${ordersArray[i].symbol} - ${ordersArray[j].symbol}`);
+          if(1000 <= diff) {
+            let minAmount = Math.min(ordersArray[j].topAskAmount, ordersArray[i].topBidAmount);
 
             // minAmount 만큼 수량으로 거래 요청
             // requestTrade 1 j거래소에서 매수
             // requestTrade 2 i거래소에서 매도
 
-            let askResult = orders[j].topAskPrice * minAmount * (1 - orders[j].taker);
-            let bidResult = orders[i].topBidPrice * minAmount * (1 - orders[i].taker);
+            let askResult = ordersArray[j].topAskPrice * minAmount * (1 - ordersArray[j].taker);
+            let bidResult = ordersArray[i].topBidPrice * minAmount * (1 - ordersArray[i].taker);
 
+            tradeTarget.push(`거래 시 예상 수익: ${bidResult - askResult}, 시세차: ${diff}, ${ordersArray[i].symbol}매수가(${ordersArray[i].topBidPrice}) - ${ordersArray[j].symbol}매도가(${ordersArray[j].topAskPrice}), 거래량${minAmount}`)
             console.log("##### Traded #####");
             console.log('Result: ', askResult - bidResult);
             
@@ -125,6 +161,7 @@ async (req, res) => {
       // res.json('aaaaaaa');
       console.log("##### response #####");      
       console.log(orders);
+      console.log(tradeTarget);
       // res.send(orders);   
       // asHtmlTable(order, (html) => {
       //   res.send(html);
@@ -157,12 +194,16 @@ async (req, res) => {
               </tr>`;
 
                 }
+                
   
   html += table;
+  for(const key in tradeTarget) {
+    html += `<h6>${tradeTarget[key]}</h6>`;
+  }
   html += `</table></body>
   </html>`;
       res.send(html)
-      
+      console.log(html);
     }
   )
 });
