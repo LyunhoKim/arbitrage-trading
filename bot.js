@@ -2,32 +2,25 @@
 
 const ccxt = require('ccxt');
 const async = require('async');
-const express = require('express');
 const fs = require('fs');
 
+
 const exchangesConfig = require('./config/exchangesConfig.json');
-const asHtmlTable = require('./as-html-table');
+
 // const pairs = require('pairs.json');
 const pair = 'BTC/KRW';
 
 
 let exchanges = {};
 let markets = [];
-const app = express();
+
 
 // asks 매도
 // bids 매수
 
-app.get('/', 
-async (req, res) => {  
 
-  // 마켓 정보 조회
-  for (let exchange of exchangesConfig) {    
-    exchanges[exchange.id] = new ccxt[exchange.id](exchange.info);
-    markets[exchange.id] = (await exchanges[exchange.id].loadMarkets(pair))[pair];
-    // console.log('#####################################', markets);   
-  }
 
+const main = async () => {
   // 각 거래소 별 오더북 조회
   async.parallel(
     [
@@ -124,7 +117,7 @@ async (req, res) => {
         for(let j = i+1; j<ordersArray.length; j++) {
           let diff = ordersArray[j].topBidPrice - ordersArray[i].topAskPrice;
           console.log(`diff: ${diff}, ${ordersArray[j].symbol} - ${ordersArray[i].symbol}`);
-          if(1000 <= diff) {
+          if(2000 <= diff) {
             let minAmount = Math.min(ordersArray[i].topAskAmount, ordersArray[j].topBidAmount);
 
             // minAmount 만큼 수량으로 거래 요청
@@ -135,7 +128,7 @@ async (req, res) => {
             let askResult = ordersArray[i].topAskPrice * minAmount * (1 - ordersArray[i].taker);
 
             //예상 수익                    
-            tradeTarget.push(`거래 시 예상 수익: ${bidResult - askResult}, 시세차: ${diff}, ${ordersArray[j].symbol}매수가(${ordersArray[j].topBidPrice}) - ${ordersArray[i].symbol}매도가(${ordersArray[i].topAskPrice}), 거래량${minAmount}`);
+            tradeTarget.push(`${getTimeStamp()}, 예상수익:${(bidResult - askResult).toFixed(3)},\t 시세차:${diff}, ${ordersArray[j].symbol}매수가:${ordersArray[j].topBidPrice}, ${ordersArray[i].symbol}매도가:${ordersArray[i].topAskPrice}, 거래량:${minAmount}<br>`);
             console.log("##### Traded #####");
             console.log('Result: ', askResult - bidResult);
           }
@@ -152,7 +145,7 @@ async (req, res) => {
             let askResult = ordersArray[j].topAskPrice * minAmount * (1 - ordersArray[j].taker);
             let bidResult = ordersArray[i].topBidPrice * minAmount * (1 - ordersArray[i].taker);
 
-            tradeTarget.push(`거래 시 예상 수익: ${bidResult - askResult}, 시세차: ${diff}, ${ordersArray[i].symbol}매수가(${ordersArray[i].topBidPrice}) - ${ordersArray[j].symbol}매도가(${ordersArray[j].topAskPrice}), 거래량${minAmount}`)
+            tradeTarget.push(`${getTimeStamp()}, 예상수익:${(bidResult - askResult).toFixed(3)},\t 시세차:${diff}, ${ordersArray[i].symbol}매수가:${ordersArray[i].topBidPrice}, ${ordersArray[j].symbol}매도가:${ordersArray[j].topAskPrice}, 거래량:${minAmount}<br>`)
             console.log("##### Traded #####");
             console.log('Result: ', askResult - bidResult);
             
@@ -163,65 +156,57 @@ async (req, res) => {
       console.log("##### response #####");      
       console.log(orders);
       console.log(tradeTarget);
-      // res.send(orders);   
-      // asHtmlTable(order, (html) => {
-      //   res.send(html);
-      // });
-      let html = `
-    <!DOCTYPE html>
-<html>
-<body>
-`;
-  let table = `<table border='1'>
-                <tr>
-                  <th>Exchanges</th>
-                  <th>매수가</th>
-                  <th>매수량</th>
-                  <th>매도가</th>
-                  <th>매도량</th>
-                  <th>Maker</th>
-                  <th>Taker</th>
-                </tr>`;
-                for(const key in orders) {
-                  table += `<tr>                  
-                <td>${key}</td>
-                <td>${orders[key].topBidPrice}</td>
-                <td>${orders[key].topBidAmount}</td>
-                <td>${orders[key].topAskPrice}</td>
-                <td>${orders[key].topAskAmount}</td>
-                <td>${orders[key].taker}</td>
-                <td>${orders[key].maker}</td>
-
-              </tr>`;
-
-                }
-                
-  
-  html += table;
-  for(const key in tradeTarget) {
-    html += `<h6>${tradeTarget[key]}</h6>`;
-  }
-  html += `</table></body>
-  </html>`;
-      res.send(html)
-      console.log(html);
+      
+      for(let i=0; i<tradeTarget.length; i++) {
+        fs.appendFile('trigger-log.log', tradeTarget[i], 'utf8', (error, data) => {
+          if(error)
+            console.log(`file writing error`);
+          else
+          console.log(`file writing success`);
+        });
+      }
+      
     }
   )
-});
 
-app.get('/log', (req, res) => {
-  console.log('get');
-  fs.readFile('./trigger-log.log', 'utf8', function(error, data) { 
-    if(error) {
-      res.send(error);
-    } else {      
-      res.send(data);
-    }
-  });
-});
+  setTimeout(main, 10000);
+};
+
+(async function getMarketInfo() {
+  // 마켓 정보 조회
+  for (let exchange of exchangesConfig) {    
+    exchanges[exchange.id] = new ccxt[exchange.id](exchange.info);
+    markets[exchange.id] = (await exchanges[exchange.id].loadMarkets(pair))[pair];
+      
+  }
+  console.log('#####################################', markets); 
+
+  setTimeout(main, 5000);
+}) ();
+
+function getTimeStamp() {
+  let d = new Date();
+  let s =
+    leadingZeros(d.getFullYear(), 4) + '-' +
+    leadingZeros(d.getMonth() + 1, 2) + '-' +
+    leadingZeros(d.getDate(), 2) + ' ' +
+
+    leadingZeros(d.getHours(), 2) + ':' +
+    leadingZeros(d.getMinutes(), 2) + ':' +
+    leadingZeros(d.getSeconds(), 2);
+
+  return s;
+}
+
+function leadingZeros(n, digits) {
+  let zero = '';
+  n = n.toString();
+
+  if (n.length < digits) {
+    for (let i = 0; i < digits - n.length; i++)
+      zero += '0';
+  }
+  return zero + n;
+}
 
 
-
-app.listen(8080, () => {
-  console.log(`API Gateway listening on port 8080!`);
-});

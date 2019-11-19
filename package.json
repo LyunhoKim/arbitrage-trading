@@ -12,7 +12,8 @@
   "dependencies": {
     "async": "^3.1.0",
     "ccxt": "^1.19.4",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "fs": "0.0.1-security"
   },
   "devDependencies": {},
   "repository": {
