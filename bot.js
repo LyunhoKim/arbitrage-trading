@@ -122,32 +122,36 @@ const main = async () => {
 
             // minAmount 만큼 수량으로 거래 요청
             // requestTrade 1 i거래소에서 매수
-            // requestTrade 2 j거래소에서 매도
+            // requestTrade 2 j거래소에서 매도            
 
-            let bidResult = ordersArray[j].topBidPrice * minAmount * (1 - ordersArray[j].taker);
-            let askResult = ordersArray[i].topAskPrice * minAmount * (1 - ordersArray[i].taker);
+            let bidTranFee = ordersArray[j].topBidPrice * minAmount * ordersArray[j].taker;
+            let askTranFee = ordersArray[i].topAskPrice * minAmount * ordersArray[i].taker;
+
+            const projectionProfit = diff * minAmount - bidTranFee - askTranFee;
 
             //예상 수익                    
-            tradeTarget.push(`${getTimeStamp()}, 예상수익:${(bidResult - askResult).toFixed(3)},\t 시세차:${diff}, ${ordersArray[j].symbol}매수가:${ordersArray[j].topBidPrice}, ${ordersArray[i].symbol}매도가:${ordersArray[i].topAskPrice}, 거래량:${minAmount}<br>`);
-            console.log("##### Traded #####");
-            console.log('Result: ', askResult - bidResult);
+            tradeTarget.push(`${getTimeStamp()}, 예상수익:${projectionProfit.toFixed(3)},\t 시세차:${diff}, ${ordersArray[j].symbol}매수가:${ordersArray[j].topBidPrice}, ${ordersArray[i].symbol}매도가:${ordersArray[i].topAskPrice}, 거래량:${minAmount}<br>`);
+            // console.log("##### Traded #####");
+            // console.log('Result: ', askResult - bidResult);
           }
 
           diff = ordersArray[i].topBidPrice - ordersArray[j].topAskPrice;
           console.log(`diff: ${diff}, ${ordersArray[i].symbol} - ${ordersArray[j].symbol}`);
-          if(1000 <= diff) {
+          if(2000 <= diff) {
             let minAmount = Math.min(ordersArray[j].topAskAmount, ordersArray[i].topBidAmount);
 
             // minAmount 만큼 수량으로 거래 요청
             // requestTrade 1 j거래소에서 매수
             // requestTrade 2 i거래소에서 매도
 
-            let askResult = ordersArray[j].topAskPrice * minAmount * (1 - ordersArray[j].taker);
-            let bidResult = ordersArray[i].topBidPrice * minAmount * (1 - ordersArray[i].taker);
+            let askTranFee = ordersArray[j].topAskPrice * minAmount * ordersArray[j].taker;
+            let bidTranFee = ordersArray[i].topBidPrice * minAmount * ordersArray[i].taker;
 
-            tradeTarget.push(`${getTimeStamp()}, 예상수익:${(bidResult - askResult).toFixed(3)},\t 시세차:${diff}, ${ordersArray[i].symbol}매수가:${ordersArray[i].topBidPrice}, ${ordersArray[j].symbol}매도가:${ordersArray[j].topAskPrice}, 거래량:${minAmount}<br>`)
-            console.log("##### Traded #####");
-            console.log('Result: ', askResult - bidResult);
+            const projectionProfit = diff * minAmount - bidTranFee - askTranFee;
+
+            tradeTarget.push(`${getTimeStamp()}, 예상수익:${projectionProfit.toFixed(3)},\t 시세차:${diff}, ${ordersArray[i].symbol}매수가:${ordersArray[i].topBidPrice}, ${ordersArray[j].symbol}매도가:${ordersArray[j].topAskPrice}, 거래량:${minAmount}<br>`)
+            // console.log("##### Traded #####");
+            // console.log('Result: ', askResult - bidResult);
             
           }
         }
