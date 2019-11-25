@@ -129,10 +129,10 @@ const main = async () => {
             let bidTranFee = ordersArray[j].topBidPrice * minAmount * ordersArray[j].taker;
             let askTranFee = ordersArray[i].topAskPrice * minAmount * ordersArray[i].taker;
 
-            const projectionProfit = diff * minAmount - bidTranFee - askTranFee;
-
+            const projectionProfit = (diff * minAmount - bidTranFee - askTranFee).toFixed(3);
+            const profitString = projectionProfit > 0 ? `<font color="red">${projectionProfit}</font>` : projectionProfit;
             //예상 수익                    
-            tradeTarget.push(`${getTimeStamp()}, 예상수익:${projectionProfit.toFixed(3)},\t 시세차:${diff}, ${ordersArray[j].symbol}매수가:${ordersArray[j].topBidPrice}, ${ordersArray[i].symbol}매도가:${ordersArray[i].topAskPrice}, 거래량:${minAmount}<br>`);
+            tradeTarget.push(`${getTimeStamp()}, 예상수익:${profitString},\t 시세차:${diff}, ${ordersArray[j].symbol}매수가:${ordersArray[j].topBidPrice}, ${ordersArray[i].symbol}매도가:${ordersArray[i].topAskPrice}, 거래량:${minAmount}<br>`);
             // console.log("##### Traded #####");
             // console.log('Result: ', askResult - bidResult);
           }
@@ -150,9 +150,10 @@ const main = async () => {
             let askTranFee = ordersArray[j].topAskPrice * minAmount * ordersArray[j].taker;
             let bidTranFee = ordersArray[i].topBidPrice * minAmount * ordersArray[i].taker;
 
-            const projectionProfit = diff * minAmount - bidTranFee - askTranFee;
+            const projectionProfit = (diff * minAmount - bidTranFee - askTranFee).toFixed(3);
+            const profitString = projectionProfit > 0 ? `<font color="red">${projectionProfit}</font>` : projectionProfit;
 
-            tradeTarget.push(`${getTimeStamp()}, 예상수익:${projectionProfit.toFixed(3)},\t 시세차:${diff}, ${ordersArray[i].symbol}매수가:${ordersArray[i].topBidPrice}, ${ordersArray[j].symbol}매도가:${ordersArray[j].topAskPrice}, 거래량:${minAmount}<br>`)
+            tradeTarget.push(`${getTimeStamp()}, 예상수익:${profitString},\t 시세차:${diff}, ${ordersArray[i].symbol}매수가:${ordersArray[i].topBidPrice}, ${ordersArray[j].symbol}매도가:${ordersArray[j].topAskPrice}, 거래량:${minAmount}<br>`)
             // console.log("##### Traded #####");
             // console.log('Result: ', askResult - bidResult);
             
