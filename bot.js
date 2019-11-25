@@ -65,7 +65,8 @@ const main = async () => {
           topBidPrice: result[1].bids[0][0],
           topBidAmount: result[1].bids[0][1],
           maker: markets['bithumb'].maker,
-          taker: markets['bithumb'].taker
+          taker: 0.0003
+          // taker: markets['bithumb'].taker
         },
 
         coinone: {
@@ -118,7 +119,8 @@ const main = async () => {
           let diff = ordersArray[j].topBidPrice - ordersArray[i].topAskPrice;
           console.log(`diff: ${diff}, ${ordersArray[j].symbol} - ${ordersArray[i].symbol}`);
           if(2000 <= diff) {
-            let minAmount = Math.min(ordersArray[i].topAskAmount, ordersArray[j].topBidAmount);
+            // let minAmount = Math.min(ordersArray[i].topAskAmount, ordersArray[j].topBidAmount);
+            let minAmount = 0.01;
 
             // minAmount 만큼 수량으로 거래 요청
             // requestTrade 1 i거래소에서 매수
@@ -138,7 +140,8 @@ const main = async () => {
           diff = ordersArray[i].topBidPrice - ordersArray[j].topAskPrice;
           console.log(`diff: ${diff}, ${ordersArray[i].symbol} - ${ordersArray[j].symbol}`);
           if(2000 <= diff) {
-            let minAmount = Math.min(ordersArray[j].topAskAmount, ordersArray[i].topBidAmount);
+            // let minAmount = Math.min(ordersArray[j].topAskAmount, ordersArray[i].topBidAmount);
+            let minAmount = 0.01;
 
             // minAmount 만큼 수량으로 거래 요청
             // requestTrade 1 j거래소에서 매수
