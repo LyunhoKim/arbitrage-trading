@@ -6,6 +6,8 @@ const fs = require('fs');
 
 // ccxt object
 let upbit;
+let counter = 0;
+let bitcoin = 0;
 let upbitInfo = {
   id: 'upbit',
   info: {
@@ -19,28 +21,111 @@ let upbitInfo = {
 let symbols = [];
 
 
+const bitTicker = () => {
+  upbit.fetchTicker('BTC/KRW').then((ticker) => {
+    bitcoin =  ticker ? ticker.last : 0;
+  });  
+  setTimeout(bitTicker, 2000);
+} 
+
+
 // asks 매도
 // bids 매수
 const main = async () => {
-  // 각 거래소 별 오더북 조회
-  async.parallel(
-    [
-      (callback) => {
-        upbit.fetchOrderBook().then(function (orderbook) {
-          callback(null, orderbook);
-        });
-      }
-    ],
-    (error, result) => {
-      console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-      // console.log('result: ', result);
-      if(error) {
-        console.log('error:', error);
-        return;
-      }     
-      console.log(result);
-    }
-  );
+
+  const idx = counter % symbols.length;  
+    async.parallel(
+      [
+        (callback) => {
+          upbit.fetchOrderBook(symbols[idx].krw, 1).then(function (orderbook) {
+            callback(null, orderbook);
+          });
+        },
+        (callback) => {
+          upbit.fetchOrderBook(symbols[idx].btc, 1).then(function (orderbook) {
+            callback(null, orderbook);
+          });
+        }  
+      ],
+      (error, result) => {
+        counter++;
+        
+        if(error) {
+          console.log('error:', error);
+          return;
+        }
+        symbols[idx].bitcoinTicker = bitcoin;
+        symbols[idx].krwOrder = {
+          topAskPrice: result[0].asks[0][0],
+          topAskAmount: result[0].asks[0][1],
+          topBidPrice: result[0].bids[0][0],
+          topBidAmount: result[0].bids[0][1]
+        }
+        symbols[idx].btcOrder = {
+          topAskPrice: result[1].asks[0][0],
+          topAskPriceKrw: result[1].asks[0][0] * symbols[idx].bitcoinTicker,
+          topAskAmount: result[1].asks[0][1],
+          topBidPrice: result[1].bids[0][0],
+          topBidPriceKrw: result[1].bids[0][0] * symbols[idx].bitcoinTicker,
+          topBidAmount: result[1].bids[0][1]
+        }
+        // console.log(symbols[idx]);
+
+        let diff = symbols[idx].btcOrder.topBidPriceKrw - symbols[idx].krwOrder.topAskPrice;
+        if(0 < diff) {
+          let minAmount = Math.min(symbols[idx].btcOrder.topBidAmount, symbols[idx].krwOrder.topAskAmount);
+          let profit = diff * minAmount - symbols[idx].btcOrder.topBidPriceKrw * minAmount * symbols[idx].btcTaker
+                                        - symbols[idx].krwOrder.topAskPrice * minAmount * symbols[idx].krwTaker;
+          if(1 < profit ) {
+            let result = `[${getTimeStamp()}] KRW->BTC ${symbols[idx].base}: ${profit.toFixed(1)}원\n`; 
+            console.log(result);
+            fs.appendFile('trigger-log.log', result, 'utf8', (error, data) => {
+              if(error)
+                console.log(`file writing error`);
+              else
+              console.log(`file writing success`);
+            });
+          }
+        }
+        diff = symbols[idx].krwOrder.topBidPrice - symbols[idx].btcOrder.topAskPriceKrw;
+        if(0 < diff) {
+          let minAmount = Math.min(symbols[idx].krwOrder.topBidAmount, symbols[idx].btcOrder.topAskAmount);
+          let profit = diff * minAmount - symbols[idx].krwOrder.topBidPrice * minAmount * symbols[idx].krwTaker
+                                        - symbols[idx].btcOrder.topAskPriceKrw * minAmount * symbols[idx].btcTaker;
+          if(1 < profit ) {
+            let result = `[${getTimeStamp()}] BTC->KRW ${symbols[idx].base}: ${profit.toFixed(1)}원\n`; 
+            console.log(result);
+            fs.appendFile('trigger-log.log', result, 'utf8', (error, data) => {
+              if(error)
+                console.log(`file writing error`);
+              else
+              console.log(`file writing success`);
+            });
+          }
+        }
+        
+        setTimeout(main, 1000);        
+      }      
+    )  
+  // }
+  // async.parallel(
+  //   [
+  //     (callback) => {
+  //       upbit.fetchOrderBook().then(function (orderbook) {
+  //         callback(null, orderbook);
+  //       });
+  //     }
+  //   ],
+  //   (error, result) => {
+  //     console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+  //     // console.log('result: ', result);
+  //     if(error) {
+  //       console.log('error:', error);
+  //       return;
+  //     }     
+  //     console.log(result);
+  //   }
+  // );
       
 
   //     let orders = {
@@ -179,7 +264,7 @@ const main = async () => {
   let markets = [];
   // 마켓 정보 조회
   upbit = new ccxt[upbitInfo.id]();
-  markets = await upbit.loadMarkets();
+  markets = await upbit.loadMarkets();  
   markets = Object.values(markets);
 
   // krw, btc 마켓
@@ -201,6 +286,8 @@ const main = async () => {
       }
     }
   }; 
+  setTimeout(bitTicker, 0);  
+  setTimeout(main, 3000);
 }) ();
 
 function getTimeStamp() {
