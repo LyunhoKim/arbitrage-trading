@@ -77,7 +77,7 @@ const main = async () => {
           let profit = diff * minAmount - symbols[idx].btcOrder.topBidPriceKrw * minAmount * symbols[idx].btcTaker
                                         - symbols[idx].krwOrder.topAskPrice * minAmount * symbols[idx].krwTaker;
           if(1 < profit ) {
-            let result = `[${getTimeStamp()}] KRW->BTC ${symbols[idx].base}: ${profit.toFixed(1)}원\n`; 
+            let result = `[${getTimeStamp()}] KRW->BTC ${symbols[idx].base}: ${profit.toFixed(1)}원<br>`; 
             console.log(result);
             fs.appendFile('trigger-log.log', result, 'utf8', (error, data) => {
               if(error)
@@ -93,7 +93,7 @@ const main = async () => {
           let profit = diff * minAmount - symbols[idx].krwOrder.topBidPrice * minAmount * symbols[idx].krwTaker
                                         - symbols[idx].btcOrder.topAskPriceKrw * minAmount * symbols[idx].btcTaker;
           if(1 < profit ) {
-            let result = `[${getTimeStamp()}] BTC->KRW ${symbols[idx].base}: ${profit.toFixed(1)}원\n`; 
+            let result = `[${getTimeStamp()}] BTC->KRW ${symbols[idx].base}: ${profit.toFixed(1)}원<br>`; 
             console.log(result);
             fs.appendFile('trigger-log.log', result, 'utf8', (error, data) => {
               if(error)
