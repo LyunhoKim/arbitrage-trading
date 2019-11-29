@@ -33,16 +33,17 @@ const bitTicker = () => {
 // bids 매수
 const main = async () => {
 
-  const idx = counter % symbols.length;  
+  const idx = counter % symbols.length;
+  let order = symbols[idx];
     async.parallel(
       [
         (callback) => {
-          upbit.fetchOrderBook(symbols[idx].krw, 1).then(function (orderbook) {
+          upbit.fetchOrderBook(order.krw, 1).then(function (orderbook) {
             callback(null, orderbook);
           });
         },
         (callback) => {
-          upbit.fetchOrderBook(symbols[idx].btc, 1).then(function (orderbook) {
+          upbit.fetchOrderBook(order.btc, 1).then(function (orderbook) {
             callback(null, orderbook);
           });
         }  
@@ -54,210 +55,42 @@ const main = async () => {
           console.log('error:', error);
           return;
         }
-        symbols[idx].bitcoinTicker = bitcoin;
-        symbols[idx].krwOrder = {
-          topAskPrice: result[0].asks[0][0],
-          topAskAmount: result[0].asks[0][1],
-          topBidPrice: result[0].bids[0][0],
-          topBidAmount: result[0].bids[0][1]
+        order.bitcoinTicker = bitcoin;
+        order.krwOrder = {
+          topAskPrice: result[0].asks[0][0], topAskAmount: result[0].asks[0][1],
+          topBidPrice: result[0].bids[0][0], topBidAmount: result[0].bids[0][1]
         }
-        symbols[idx].btcOrder = {
-          topAskPrice: result[1].asks[0][0],
-          topAskPriceKrw: result[1].asks[0][0] * symbols[idx].bitcoinTicker,
+        order.btcOrder = {
+          topAskPrice: result[1].asks[0][0] * order.bitcoinTicker, // btcOrder는 btc 가격 표기가 맞으나 구현 편의상 원화로 표시
+          topAskPriceBtc: result[1].asks[0][0],                           // 원래의 btc 가격 표기
           topAskAmount: result[1].asks[0][1],
-          topBidPrice: result[1].bids[0][0],
-          topBidPriceKrw: result[1].bids[0][0] * symbols[idx].bitcoinTicker,
+          topBidPrice: result[1].bids[0][0] * order.bitcoinTicker,
+          topBidPriceBtc: result[1].bids[0][0],
           topBidAmount: result[1].bids[0][1]
         }
-        // console.log(symbols[idx]);
-
-        let diff = symbols[idx].btcOrder.topBidPriceKrw - symbols[idx].krwOrder.topAskPrice;
-        if(0 < diff) {
-          let minAmount = Math.min(symbols[idx].btcOrder.topBidAmount, symbols[idx].krwOrder.topAskAmount);
-          let profit = diff * minAmount - symbols[idx].btcOrder.topBidPriceKrw * minAmount * symbols[idx].btcTaker
-                                        - symbols[idx].krwOrder.topAskPrice * minAmount * symbols[idx].krwTaker;
-          if(1 < profit ) {
-            let result = `[${getTimeStamp()}] KRW->BTC ${symbols[idx].base}: ${profit.toFixed(1)}원<br>`; 
-            console.log(result);
-            fs.appendFile('trigger-log.log', result, 'utf8', (error, data) => {
-              if(error)
-                console.log(`file writing error`);
-              else
-              console.log(`file writing success`);
-            });
-          }
-        }
-        diff = symbols[idx].krwOrder.topBidPrice - symbols[idx].btcOrder.topAskPriceKrw;
-        if(0 < diff) {
-          let minAmount = Math.min(symbols[idx].krwOrder.topBidAmount, symbols[idx].btcOrder.topAskAmount);
-          let profit = diff * minAmount - symbols[idx].krwOrder.topBidPrice * minAmount * symbols[idx].krwTaker
-                                        - symbols[idx].btcOrder.topAskPriceKrw * minAmount * symbols[idx].btcTaker;
-          if(1 < profit ) {
-            let result = `[${getTimeStamp()}] BTC->KRW ${symbols[idx].base}: ${profit.toFixed(1)}원<br>`; 
-            console.log(result);
-            fs.appendFile('trigger-log.log', result, 'utf8', (error, data) => {
-              if(error)
-                console.log(`file writing error`);
-              else
-              console.log(`file writing success`);
-            });
-          }
-        }
         
-        setTimeout(main, 1000);        
-      }      
-    )  
-  // }
-  // async.parallel(
-  //   [
-  //     (callback) => {
-  //       upbit.fetchOrderBook().then(function (orderbook) {
-  //         callback(null, orderbook);
-  //       });
-  //     }
-  //   ],
-  //   (error, result) => {
-  //     console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-  //     // console.log('result: ', result);
-  //     if(error) {
-  //       console.log('error:', error);
-  //       return;
-  //     }     
-  //     console.log(result);
-  //   }
-  // );
-      
-
-  //     let orders = {
-  //       upbit: {
-  //         topAskPrice: result[0].asks[0][0],
-  //         topAskAmount: result[0].asks[0][1],
-  //         topBidPrice: result[0].bids[0][0],
-  //         topBidAmount: result[0].bids[0][1],
-  //         maker: markets['upbit'].maker,
-  //         taker: markets['upbit'].taker
-  //       },
-
-  //       bithumb: {
-  //         topAskPrice: result[1].asks[0][0],
-  //         topAskAmount: result[1].asks[0][1],
-  //         topBidPrice: result[1].bids[0][0],
-  //         topBidAmount: result[1].bids[0][1],
-  //         maker: markets['bithumb'].maker,
-  //         taker: 0.0003
-  //         // taker: markets['bithumb'].taker
-  //       },
-
-  //       coinone: {
-  //         topAskPrice: result[2].asks[0][0],
-  //         topAskAmount: result[2].asks[0][1],
-  //         topBidPrice: result[2].bids[0][0],
-  //         topBidAmount: result[2].bids[0][1],
-  //         maker: markets['coinone'].maker,
-  //         taker: markets['coinone'].taker
-  //       }
-  //   };
-
-  //   let ordersArray = [];
-  //   ordersArray.push({
-  //       symbol: 'upbit',
-  //       topAskPrice: result[0].asks[0][0],
-  //       topAskAmount: result[0].asks[0][1],
-  //       topBidPrice: result[0].bids[0][0],
-  //       topBidAmount: result[0].bids[0][1],
-  //       maker: markets['upbit'].maker,
-  //       taker: markets['upbit'].taker
-  //     });
-
-  //     ordersArray.push({
-  //       symbol: 'bithumb',
-  //       topAskPrice: result[1].asks[0][0],
-  //       topAskAmount: result[1].asks[0][1],
-  //       topBidPrice: result[1].bids[0][0],
-  //       topBidAmount: result[1].bids[0][1],
-  //       maker: markets['bithumb'].maker,
-  //       taker: markets['bithumb'].taker
-  //     });
-
-  //     ordersArray.push({
-  //       symbol: 'coinone',
-  //       topAskPrice: result[2].asks[0][0],
-  //       topAskAmount: result[2].asks[0][1],
-  //       topBidPrice: result[2].bids[0][0],
-  //       topBidAmount: result[2].bids[0][1],
-  //       maker: markets['coinone'].maker,
-  //       taker: markets['coinone'].taker
-  //     });
-    
-      
-      
-      
-  //     let tradeTarget = [];
-  //     for(let i = 0; i<ordersArray.length; i++) {
-  //       for(let j = i+1; j<ordersArray.length; j++) {
-  //         let diff = ordersArray[j].topBidPrice - ordersArray[i].topAskPrice;
-  //         console.log(`diff: ${diff}, ${ordersArray[j].symbol} - ${ordersArray[i].symbol}`);
-  //         if(2000 <= diff) {
-  //           // let minAmount = Math.min(ordersArray[i].topAskAmount, ordersArray[j].topBidAmount);
-  //           let minAmount = 0.01;
-
-  //           // minAmount 만큼 수량으로 거래 요청
-  //           // requestTrade 1 i거래소에서 매수
-  //           // requestTrade 2 j거래소에서 매도            
-
-  //           let bidTranFee = ordersArray[j].topBidPrice * minAmount * ordersArray[j].taker;
-  //           let askTranFee = ordersArray[i].topAskPrice * minAmount * ordersArray[i].taker;
-
-  //           const projectionProfit = (diff * minAmount - bidTranFee - askTranFee).toFixed(3);
-  //           const profitString = projectionProfit > 0 ? `<font color="red">${projectionProfit}</font>` : projectionProfit;
-  //           //예상 수익                    
-  //           tradeTarget.push(`${getTimeStamp()}, 예상수익:${profitString},\t 시세차:${diff}, ${ordersArray[j].symbol}매수가:${ordersArray[j].topBidPrice}, ${ordersArray[i].symbol}매도가:${ordersArray[i].topAskPrice}, 거래량:${minAmount}<br>`);
-  //           // console.log("##### Traded #####");
-  //           // console.log('Result: ', askResult - bidResult);
-  //         }
-
-  //         diff = ordersArray[i].topBidPrice - ordersArray[j].topAskPrice;
-  //         console.log(`diff: ${diff}, ${ordersArray[i].symbol} - ${ordersArray[j].symbol}`);
-  //         if(2000 <= diff) {
-  //           // let minAmount = Math.min(ordersArray[j].topAskAmount, ordersArray[i].topBidAmount);
-  //           let minAmount = 0.01;
-
-  //           // minAmount 만큼 수량으로 거래 요청
-  //           // requestTrade 1 j거래소에서 매수
-  //           // requestTrade 2 i거래소에서 매도
-
-  //           let askTranFee = ordersArray[j].topAskPrice * minAmount * ordersArray[j].taker;
-  //           let bidTranFee = ordersArray[i].topBidPrice * minAmount * ordersArray[i].taker;
-
-  //           const projectionProfit = (diff * minAmount - bidTranFee - askTranFee).toFixed(3);
-  //           const profitString = projectionProfit > 0 ? `<font color="red">${projectionProfit}</font>` : projectionProfit;
-
-  //           tradeTarget.push(`${getTimeStamp()}, 예상수익:${profitString},\t 시세차:${diff}, ${ordersArray[i].symbol}매수가:${ordersArray[i].topBidPrice}, ${ordersArray[j].symbol}매도가:${ordersArray[j].topAskPrice}, 거래량:${minAmount}<br>`)
-  //           // console.log("##### Traded #####");
-  //           // console.log('Result: ', askResult - bidResult);
-            
-  //         }
-  //       }
-  //     }
-  //     // res.json('aaaaaaa');
-  //     console.log("##### response #####");      
-  //     console.log(orders);
-  //     console.log(tradeTarget);
-      
-  //     for(let i=0; i<tradeTarget.length; i++) {
-  //       fs.appendFile('trigger-log.log', tradeTarget[i], 'utf8', (error, data) => {
-  //         if(error)
-  //           console.log(`file writing error`);
-  //         else
-  //         console.log(`file writing success`);
-  //       });
-  //     }
-      
-  //   }
-  // )
-
-  // setTimeout(main, 10000);
+        calcProfit(order.btcOrder, order.krwOrder, order);
+        calcProfit(order.krwOrder, order.btcOrder, order);
+        
+        setTimeout(main, 1000);
+      }
+    )
 };
+
+function calcProfit(bids, asks, order) {
+  let diff = bids.topBidPrice - asks.topAskPrice;
+  if(0 < diff) {
+    let minAmount = Math.min(bids.topBidAmount, asks.topAskAmount) * 0.5;
+    let profit = diff * minAmount - bids.topBidPrice * minAmount * order.taker
+                                  - asks.topAskPrice * minAmount * order.taker;
+    if(5.0 <= profit ) {      
+      let result = `#${leadingZeros(counter, 8)} [${getTimeStamp()}] KRW->BTC ${order.base}: ${profit.toFixed(1)}원 수량: ${minAmount}\n<br>`;             
+      fs.appendFile('trigger-log.log', result, 'utf8', (error, data) => {});
+      return profit;
+    }
+  } 
+  return 0; 
+}
 
 (async function getMarketInfo() {
 
@@ -280,8 +113,10 @@ const main = async () => {
           krw: krwMarket[i].symbol,
           btc: btcMarket[j].symbol,
           krwTaker: krwMarket[i].taker,
-          btcTaker: btcMarket[i].taker
+          btcTaker: btcMarket[i].taker          
         }
+        symbol.btcOrder = { taker: btcMarket[i].taker };
+        symbol.krwOrder = { taker: krwMarket[i].taker };
         symbols.push(symbol);
       }
     }
