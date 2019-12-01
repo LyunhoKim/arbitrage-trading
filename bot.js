@@ -65,7 +65,8 @@ const main = async () => {
           topBidPrice: result[1].bids[0][0],
           topBidAmount: result[1].bids[0][1],
           maker: markets['bithumb'].maker,
-          taker: markets['bithumb'].taker
+          taker: 0.0003
+          // taker: markets['bithumb'].taker
         },
 
         coinone: {
@@ -118,15 +119,18 @@ const main = async () => {
           let diff = ordersArray[j].topBidPrice - ordersArray[i].topAskPrice;
           console.log(`diff: ${diff}, ${ordersArray[j].symbol} - ${ordersArray[i].symbol}`);
           if(2000 <= diff) {
-            let minAmount = Math.min(ordersArray[i].topAskAmount, ordersArray[j].topBidAmount);
+            // let minAmount = Math.min(ordersArray[i].topAskAmount, ordersArray[j].topBidAmount);
+            let minAmount = 0.01;
 
             // minAmount 만큼 수량으로 거래 요청
             // requestTrade 1 i거래소에서 매수
-            // requestTrade 2 j거래소에서 매도
+            // requestTrade 2 j거래소에서 매도            
 
             let bidResult = ordersArray[j].topBidPrice * minAmount * (1 - ordersArray[j].taker); // 수수료반영된 매도 원화금액
             let askedFee = ordersArray[i].topAskPrice * minAmount * ordersArray[i].taker; // 매수한 후 수수료
 
+            const projectionProfit = (diff * minAmount - bidTranFee - askTranFee).toFixed(3);
+            const profitString = projectionProfit > 0 ? `<font color="red">${projectionProfit}</font>` : projectionProfit;
             //예상 수익                    
             tradeTarget.push(`${getTimeStamp()}, 예상수익:${(bidResult - askedFee).toFixed(3)},\t 시세차:${diff}, ${ordersArray[j].symbol}매수가:${ordersArray[j].topBidPrice}, ${ordersArray[i].symbol}매도가:${ordersArray[i].topAskPrice}, 거래량:${minAmount}<br>`);
             console.log("##### Traded #####");
