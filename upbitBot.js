@@ -69,6 +69,7 @@ const main = async () => {
           topBidAmount: result[1].bids[0][1]
         }
         
+        // console.log(order);
         calcProfit(order.btcOrder, order.krwOrder, order);
         calcProfit(order.krwOrder, order.btcOrder, order);
         
@@ -77,15 +78,23 @@ const main = async () => {
     )
 };
 
+
+
 function calcProfit(bids, asks, order) {
+  
   let diff = bids.topBidPrice - asks.topAskPrice;
+  let debug = `[${order.base}]bids: ${bids.topBidPrice}, asks: ${asks.topAskPrice}, diff: ${diff}`;
+  consoleDebug(debug);
   if(0 < diff) {
     let minAmount = Math.min(bids.topBidAmount, asks.topAskAmount) * 0.5;
     let profit = diff * minAmount - bids.topBidPrice * minAmount * order.taker
                                   - asks.topAskPrice * minAmount * order.taker;
+    // consoleDebug(`minAmount: ${minAmount}, profit: ${profit}`);
     if(5.0 <= profit ) {      
       let result = `#${leadingZeros(counter, 8)} [${getTimeStamp()}] KRW->BTC ${order.base}: ${profit.toFixed(1)}원 수량: ${minAmount}\n<br>`;             
       fs.appendFile('trigger-log.log', result, 'utf8', (error, data) => {});
+      // consoleDebug(result);
+      console.log(result);
       return profit;
     }
   } 
@@ -94,6 +103,7 @@ function calcProfit(bids, asks, order) {
 
 (async function getMarketInfo() {
 
+  consoleDebug('bot started');
   let markets = [];
   // 마켓 정보 조회
   upbit = new ccxt[upbitInfo.id]();
@@ -148,6 +158,10 @@ function leadingZeros(n, digits) {
       zero += '0';
   }
   return zero + n;
+}
+
+function consoleDebug(msg) {
+  console.log('\x1b[36m', msg);
 }
 
 
