@@ -209,9 +209,20 @@ async (req, res) => {
   )
 });
 
-app.get('/log', (req, res) => {
+app.get('/upbitbot', (req, res) => {
   console.log('get');
-  fs.readFile('./trigger-log.log', 'utf8', function(error, data) { 
+  fs.readFile('./upbitBot.log', 'utf8', function(error, data) { 
+    if(error) {
+      res.send(error);
+    } else {      
+      res.send(data);
+    }
+  });
+});
+
+app.get('/bitbot', (req, res) => {
+  console.log('get');
+  fs.readFile('./bitbot.log', 'utf8', function(error, data) { 
     if(error) {
       res.send(error);
     } else {      

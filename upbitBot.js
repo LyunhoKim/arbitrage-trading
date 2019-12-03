@@ -93,7 +93,7 @@ function calcProfit(bids, asks, order) {
     // consoleDebug(`minAmount: ${minAmount}, profit: ${profit}`);
     if(5.0 <= profit ) {      
       let result = `#${leadingZeros(counter, 8)} [${getTimeStamp()}] KRW->BTC ${order.base}: ${profit.toFixed(1)}원 수량: ${minAmount}\n<br>`;             
-      fs.appendFile('trigger-log.log', result, 'utf8', (error, data) => {});
+      fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});
       // consoleDebug(result);
       console.log(result);
       return profit;
