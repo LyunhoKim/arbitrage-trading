@@ -222,7 +222,7 @@ app.get('/upbitbot', (req, res) => {
 
 app.get('/bitbot', (req, res) => {
   console.log('get');
-  fs.readFile('./bitbot.log', 'utf8', function(error, data) { 
+  fs.readFile('./bitBot.log', 'utf8', function(error, data) { 
     if(error) {
       res.send(error);
     } else {      
