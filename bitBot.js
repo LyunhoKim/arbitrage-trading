@@ -6,19 +6,9 @@ const fs = require('fs');
 
 
 const exchangesConfig = require('./config/exchangesConfig.json');
-
-// const pairs = require('pairs.json');
 const pair = 'BTC/KRW';
-
-
 let exchanges = {};
 let markets = [];
-
-
-// asks 매도
-// bids 매수
-
-
 
 const main = async () => {
   // 각 거래소 별 오더북 조회
@@ -41,14 +31,10 @@ const main = async () => {
       },
     ],
     (error, result) => {
-      console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-      // console.log('result: ', result);
       if(error) {
         console.log('error:', error);
         return;
       }     
-      
-
       let orders = {
         upbit: {
           topAskPrice: result[0].asks[0][0],
@@ -64,9 +50,8 @@ const main = async () => {
           topAskAmount: result[1].asks[0][1],
           topBidPrice: result[1].bids[0][0],
           topBidAmount: result[1].bids[0][1],
-          maker: markets['bithumb'].maker,
-          taker: 0.0003
-          // taker: markets['bithumb'].taker
+          maker: markets['bithumb'].maker,          
+          taker: markets['bithumb'].taker  //taker: 0.0003
         },
 
         coinone: {
@@ -110,9 +95,6 @@ const main = async () => {
         taker: markets['coinone'].taker
       });
     
-      
-      
-      
       let tradeTarget = [];
       for(let i = 0; i<ordersArray.length; i++) {
         for(let j = i+1; j<ordersArray.length; j++) {
@@ -121,9 +103,6 @@ const main = async () => {
           console.log(`diff: ${diff}, ${ordersArray[j].symbol} - ${ordersArray[i].symbol}`);
           if(2000 <= diff && 0.01 <= minAmount) {            
             minAmount = 0.01;
-            // minAmount 만큼 수량으로 거래 요청
-            // requestTrade 1 i거래소에서 매수
-            // requestTrade 2 j거래소에서 매도            
 
             let bidFee = ordersArray[j].topBidPrice * minAmount * ordersArray[j].taker; // 수수료반영된 매도 원화금액
             let askFee = ordersArray[i].topAskPrice * minAmount * ordersArray[i].taker; // 매수한 후 수수료
@@ -140,9 +119,6 @@ const main = async () => {
           console.log(`diff: ${diff}, ${ordersArray[i].symbol} - ${ordersArray[j].symbol}`);
           if(2000 <= diff && 0.01 <= minAmount) {
             minAmount = 0.01;
-            // minAmount 만큼 수량으로 거래 요청
-            // requestTrade 1 j거래소에서 매수
-            // requestTrade 2 i거래소에서 매도
 
             let askFee = ordersArray[j].topAskPrice * minAmount * ordersArray[j].taker;
             let bidFee = ordersArray[i].topBidPrice * minAmount * ordersArray[i].taker;
@@ -155,11 +131,6 @@ const main = async () => {
           }
         }
       }
-      // res.json('aaaaaaa');
-      console.log("##### response #####");      
-      console.log(orders);
-      console.log(tradeTarget);
-      
       for(let i=0; i<tradeTarget.length; i++) {
         fs.appendFile('bitBot.log', tradeTarget[i], 'utf8', (error, data) => {
           if(error)
@@ -167,8 +138,7 @@ const main = async () => {
           else
           console.log(`file writing success`);
         });
-      }
-      
+      }      
     }
   )
 
@@ -179,11 +149,8 @@ const main = async () => {
   // 마켓 정보 조회
   for (let exchange of exchangesConfig) {    
     exchanges[exchange.id] = new ccxt[exchange.id](exchange.info);
-    markets[exchange.id] = (await exchanges[exchange.id].loadMarkets(pair))[pair];
-      
+    markets[exchange.id] = (await exchanges[exchange.id].loadMarkets(pair))[pair];      
   }
-  console.log('#####################################', markets); 
-
   setTimeout(main, 5000);
 }) ();
 
@@ -211,5 +178,3 @@ function leadingZeros(n, digits) {
   }
   return zero + n;
 }
-
-

@@ -89,13 +89,10 @@ function calcProfit(bids, asks, order) {
   if(0 < diff) {
     let minAmount = Math.min(bids.topBidAmount, asks.topAskAmount) * 0.5;
     let profit = diff * minAmount - bids.topBidPrice * minAmount * order.taker
-                                  - asks.topAskPrice * minAmount * order.taker;
-    // consoleDebug(`minAmount: ${minAmount}, profit: ${profit}`);
+                                  - asks.topAskPrice * minAmount * order.taker;    
     if(5.0 <= profit ) {      
       let result = `#${leadingZeros(counter, 8)} [${getTimeStamp()}] KRW->BTC ${order.base}: ${profit.toFixed(1)}원 수량: ${minAmount}\n<br>`;             
-      fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});
-      // consoleDebug(result);
-      console.log(result);
+      fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});      
       return profit;
     }
   } 
