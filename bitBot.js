@@ -8,61 +8,22 @@ const fs = require('fs');
 const exchangesConfig = require('./config/exchangesConfig.json');
 const pair = 'BTC/KRW';
 let exchanges = {};
-let markets = [];
+let counter = 0;
 
 const main = async () => {
   // 각 거래소 별 오더북 조회
   async.parallel(
     [
-      (callback) => {
-        exchanges['upbit'].fetchOrderBook(pair).then(function (orderbook) {
-          callback(null, orderbook);
-        });
-      },
-      (callback) => {
-        exchanges['bithumb'].fetchOrderBook(pair).then(function (orderbook) {
-          callback(null, orderbook);
-        });
-      },
-      (callback) => {
-        exchanges['coinone'].fetchOrderBook(pair).then(function (orderbook) {
-          callback(null, orderbook);
-        });
-      },
+      exchanges['upbit'].getOrders(),
+      exchanges['bithumb'].getOrders(),
+      exchanges['coinone'].getOrders()   
     ],
     (error, result) => {
+      console.log(result);
       if(error) {
         console.log('error:', error);
         return;
-      }     
-      let orders = {
-        upbit: {
-          topAskPrice: result[0].asks[0][0],
-          topAskAmount: result[0].asks[0][1],
-          topBidPrice: result[0].bids[0][0],
-          topBidAmount: result[0].bids[0][1],
-          maker: markets['upbit'].maker,
-          taker: markets['upbit'].taker
-        },
-
-        bithumb: {
-          topAskPrice: result[1].asks[0][0],
-          topAskAmount: result[1].asks[0][1],
-          topBidPrice: result[1].bids[0][0],
-          topBidAmount: result[1].bids[0][1],
-          maker: markets['bithumb'].maker,          
-          taker: markets['bithumb'].taker  //taker: 0.0003
-        },
-
-        coinone: {
-          topAskPrice: result[2].asks[0][0],
-          topAskAmount: result[2].asks[0][1],
-          topBidPrice: result[2].bids[0][0],
-          topBidAmount: result[2].bids[0][1],
-          maker: markets['coinone'].maker,
-          taker: markets['coinone'].taker
-        }
-    };
+      }          
 
     let ordersArray = [];
     ordersArray.push({
@@ -71,8 +32,8 @@ const main = async () => {
         topAskAmount: result[0].asks[0][1],
         topBidPrice: result[0].bids[0][0],
         topBidAmount: result[0].bids[0][1],
-        maker: markets['upbit'].maker,
-        taker: markets['upbit'].taker
+        maker: exchanges['upbit'].marketInfo.maker,
+        taker: exchanges['upbit'].marketInfo.taker
       });
 
       ordersArray.push({
@@ -81,8 +42,8 @@ const main = async () => {
         topAskAmount: result[1].asks[0][1],
         topBidPrice: result[1].bids[0][0],
         topBidAmount: result[1].bids[0][1],
-        maker: markets['bithumb'].maker,
-        taker: markets['bithumb'].taker
+        maker: exchanges['bithumb'].marketInfo.maker,
+        taker: exchanges['bithumb'].marketInfo.taker
       });
 
       ordersArray.push({
@@ -91,8 +52,8 @@ const main = async () => {
         topAskAmount: result[2].asks[0][1],
         topBidPrice: result[2].bids[0][0],
         topBidAmount: result[2].bids[0][1],
-        maker: markets['coinone'].maker,
-        taker: markets['coinone'].taker
+        maker: exchanges['coinone'].marketInfo.maker,
+        taker: exchanges['coinone'].marketInfo.taker
       });
     
       let tradeTarget = [];
@@ -108,10 +69,10 @@ const main = async () => {
             let askFee = ordersArray[i].topAskPrice * minAmount * ordersArray[i].taker; // 매수한 후 수수료
 
             const profit = (diff * minAmount - bidFee - askFee).toFixed(3);
-            // if(0 < profit) {
+            if(50 < profit) {
               const profitString = profit > 0 ? `<font color="red">${profit}</font>` : profit;
               tradeTarget.push(`${getTimeStamp()}, 예상수익:${profitString},\t 시세차:${diff}, ${ordersArray[j].symbol}매수가:${ordersArray[j].topBidPrice}, ${ordersArray[i].symbol}매도가:${ordersArray[i].topAskPrice}, 거래량:${minAmount}<br>`);
-            // }
+            }
           }
 
           diff = ordersArray[i].topBidPrice - ordersArray[j].topAskPrice;
@@ -124,32 +85,33 @@ const main = async () => {
             let bidFee = ordersArray[i].topBidPrice * minAmount * ordersArray[i].taker;
 
             const profit = (diff * minAmount - bidFee - askFee).toFixed(3);
-            // if(0 < profit) {
+            if(50 < profit) {
               const profitString = profit > 0 ? `<font color="red">${profit}</font>` : profit;
               tradeTarget.push(`${getTimeStamp()}, 예상수익:${profitString},\t 시세차:${diff}, ${ordersArray[i].symbol}매수가:${ordersArray[i].topBidPrice}, ${ordersArray[j].symbol}매도가:${ordersArray[j].topAskPrice}, 거래량:${minAmount}<br>`)
-            // }
+            }
           }
         }
       }
       for(let i=0; i<tradeTarget.length; i++) {
-        fs.appendFile('bitBot.log', tradeTarget[i], 'utf8', (error, data) => {
-          if(error)
-            console.log(`file writing error`);
-          else
-          console.log(`file writing success`);
-        });
+        fs.appendFile('bitBot.log', tradeTarget[i], 'utf8', (error, data) => {});
       }      
     }
   )
-
   setTimeout(main, 10000);
 };
 
 (async function getMarketInfo() {
   // 마켓 정보 조회
   for (let exchange of exchangesConfig) {    
-    exchanges[exchange.id] = new ccxt[exchange.id](exchange.info);
-    markets[exchange.id] = (await exchanges[exchange.id].loadMarkets(pair))[pair];      
+    exchanges[exchange.id] = new ccxt[exchange.id](exchange.info);    
+    exchanges[exchange.id].marketInfo = (await exchanges[exchange.id].loadMarkets(pair))[pair];
+    exchanges[exchange.id].getOrders = () => {
+      return (callback) => {
+        exchanges[exchange.id].fetchOrderBook(pair).then(function (orderbook) {
+          callback(null, orderbook);
+        });
+      };
+    }
   }
   setTimeout(main, 5000);
 }) ();
