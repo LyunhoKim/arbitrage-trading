@@ -27,18 +27,12 @@ const main = async () => {
   }, 0).toFixed(8);
 
   const rate = (bids/asks).toFixed(2);
-  if(rate < 0.6 || 1.66 < rate) {    
-    let result = `[${getTimeStamp()}] 매수량:${bids} 매도량:${asks} Rate:${rate} BTC:${btcPrice} \n<br>`;             
-    fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});      
-  }
+  // if(rate < 0.6 || 1.66 < rate) {    
+  let result = `${getTimeStamp()},매수량:${bids},매도량:${asks},Rate:${rate},BTC:${btcPrice}\n<br>`;             
+  fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});      
+  // }
 
-
-  console.log(orderbook);
-  console.log(bids);
-  console.log(asks);
-  console.log(rate);
-  console.log(btcPrice);
-  setTimeout(main, 2000);
+  setTimeout(main, 1000);
 }
 
 const bitTicker = () => {
@@ -50,10 +44,12 @@ const bitTicker = () => {
 
 (async function getMarketInfo() {
 
-  consoleDebug('bot started');
-  let markets = [];
+  consoleDebug('bot started');  
   // 마켓 정보 조회
   upbit = new ccxt[upbitInfo.id]();
+
+  let result = `TimeStamp,매수량,매도량,Rate,BTC\n<br>`;             
+  fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});      
 
   setTimeout(bitTicker, 0);  
   setTimeout(main, 1000);
