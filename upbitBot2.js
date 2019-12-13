@@ -28,7 +28,7 @@ const main = async () => {
 
   const rate = (bids/asks).toFixed(2);
   // if(rate < 0.6 || 1.66 < rate) {    
-  let result = `${getTimeStamp()},매수량:${bids},매도량:${asks},Rate:${rate},BTC:${btcPrice}\n<br>`;             
+  let result = `${getTimeStamp()},${bids},${asks},${rate},${btcPrice}\n<br>`;             
   fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});      
   // }
 
