@@ -27,10 +27,10 @@ const main = async () => {
   }, 0).toFixed(8);
 
   const rate = (bids/asks).toFixed(2);
-  // if(rate < 0.6 || 1.66 < rate) {    
-  let result = `${getTimeStamp()},${bids},${asks},${rate},${btcPrice}\n<br>`;             
-  fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});      
-  // }
+  if(rate < 0.3 || 3.3 < rate) {    
+    let result = `${getTimeStamp()},${bids},${asks},${rate},${btcPrice}\n<br>`;             
+    fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});      
+  }
 
   setTimeout(main, 1000);
 }
