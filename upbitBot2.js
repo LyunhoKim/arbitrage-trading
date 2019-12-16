@@ -15,6 +15,8 @@ let upbitInfo = {
   }
 };
 
+let lastStatus = {};
+
 const main = async () => {
   const orderbook = await upbit.fetchOrderBook('BTC/KRW', 1);
 
@@ -27,10 +29,23 @@ const main = async () => {
   }, 0).toFixed(8);
 
   const rate = (bids/asks).toFixed(2);
+  if(rate < 0.3 && 3.3 < lastStatus.rate) {
+    let log = `SELL,${rate},${lastStatus.btcPrice},${btcPrice}\n<br>`;
+    fs.appendFile('tran.log', log, 'utf8', (error, data) => {});
+  } else if(lastStatus.rate < 0.3 && 3.3 < rate) {
+    let log = `BUY,${rate},${lastStatus.btcPrice},${btcPrice}\n<br>`;
+    fs.appendFile('tran.log', log, 'utf8', (error, data) => {});
+  }
   if(rate < 0.3 || 3.3 < rate) {    
     let result = `${getTimeStamp()},${bids},${asks},${rate},${btcPrice}\n<br>`;             
     fs.appendFile('upbitBot.log', result, 'utf8', (error, data) => {});      
+    lastStatus = {
+      rate: rate,
+      btcPrice: btcPrice
+    };
   }
+
+  
 
   setTimeout(main, 1000);
 }

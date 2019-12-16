@@ -220,6 +220,17 @@ app.get('/upbitbot', (req, res) => {
   });
 });
 
+app.get('/trans', (req, res) => {
+  console.log('get');
+  fs.readFile('./tran.log', 'utf8', function(error, data) { 
+    if(error) {
+      res.send(error);
+    } else {      
+      res.send(data);
+    }
+  });
+});
+
 app.get('/bitbot', (req, res) => {
   console.log('get');
   fs.readFile('./bitBot.log', 'utf8', function(error, data) { 
