@@ -25,8 +25,6 @@ const main = async () => {
   let [topBidPrice] = orderbook.bids[14];
   let [topAskPrice] = orderbook.asks[14];  
 
-  console.log(btcPrice, topBidPrice, topAskPrice);
-
   // 매수 오더 수량 합계
   const bids = orderbook.bids.reduce( (accumulator, value) => {
     return accumulator + value[1];
