@@ -3,8 +3,8 @@
 const ccxt = require('ccxt');
 const fs = require('fs');
 
-const low = 0.25;
-const high = 3.3;
+const low = 0.2;
+const high = 5.0;
 
 let upbit;      // ccxt object
 let btcPrice;
@@ -24,6 +24,8 @@ const main = async () => {
 
   let [topBidPrice] = orderbook.bids[14];
   let [topAskPrice] = orderbook.asks[14];  
+
+  console.log(btcPrice, topBidPrice, topAskPrice);
 
   // 매수 오더 수량 합계
   const bids = orderbook.bids.reduce( (accumulator, value) => {
