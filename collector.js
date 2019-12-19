@@ -60,7 +60,7 @@ function getRSI() {
   const l = `${getTimeStamp()},${RSI.RSI},${btc1m[0]}`;
   log(l);
   // setTimeout(getRSI, 1000 * 5);
-  setTimeout(getRSI, 1000 * 60 * 5); // 5분 RSI
+  // setTimeout(getRSI, 1000 * 60 * 5); // 5분 RSI
   setTimeout(getRSI, 1000 * 60); // 1분 RSI
 }
 
