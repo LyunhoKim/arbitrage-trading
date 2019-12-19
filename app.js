@@ -209,9 +209,9 @@ async (req, res) => {
   )
 });
 
-app.get('/upbitbot', (req, res) => {
+app.get('/coll', (req, res) => {
   console.log('get');
-  fs.readFile('./upbitBot.log', 'utf8', function(error, data) { 
+  fs.readFile('./collector.log', 'utf8', function(error, data) { 
     if(error) {
       res.send(error);
     } else {      
@@ -220,20 +220,9 @@ app.get('/upbitbot', (req, res) => {
   });
 });
 
-app.get('/trans', (req, res) => {
+app.get('/coll-raw', (req, res) => {
   console.log('get');
-  fs.readFile('./tran.log', 'utf8', function(error, data) { 
-    if(error) {
-      res.send(error);
-    } else {      
-      res.send(data);
-    }
-  });
-});
-
-app.get('/bitbot', (req, res) => {
-  console.log('get');
-  fs.readFile('./bitBot.log', 'utf8', function(error, data) { 
+  fs.readFile('./collector-raw.log', 'utf8', function(error, data) { 
     if(error) {
       res.send(error);
     } else {      

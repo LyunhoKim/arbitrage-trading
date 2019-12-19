@@ -105,3 +105,6 @@ dist
 
 # Exchange API Key
 exchangesConfig.json
+
+# dbms configuration
+db-config.js
