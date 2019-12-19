@@ -59,8 +59,9 @@ function getRSI() {
   console.log(sum, RSI);
   const l = `${getTimeStamp()},${RSI.RSI},${btc1m[0]}`;
   log(l);
-  setTimeout(getRSI, 1000 * 5);
-  // setTimeout(getRSI, 1000 * 60 * 5);
+  // setTimeout(getRSI, 1000 * 5);
+  setTimeout(getRSI, 1000 * 60 * 5); // 5분 RSI
+  setTimeout(getRSI, 1000 * 60); // 1분 RSI
 }
 
 
@@ -73,8 +74,8 @@ const bitTicker = () => {
 
   const l = `${getTimeStamp()},${btc1m[0]}`;
   log(l, 'collector-raw.log')
-  setTimeout(bitTicker, 1000);
-  // setTimeout(bitTicker, 1000 * 60);
+  // setTimeout(bitTicker, 1000);
+  setTimeout(bitTicker, 1000 * 60); // 1분 주기 데이터 수집
   if(btc1m.length > 100) btc1m.pop();
 };
 
@@ -89,7 +90,7 @@ const bitTicker = () => {
   upbit = new ccxt[upbitInfo.id]();
 
   setTimeout(bitTicker, 0);
-  setTimeout(getRSI, 1000);
+  setTimeout(getRSI, 3000);
 }) ();
 
 
