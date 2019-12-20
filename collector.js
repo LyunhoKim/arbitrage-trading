@@ -3,9 +3,6 @@
 const ccxt = require('ccxt');
 const fs = require('fs');
 
-const low = 0.2;
-const high = 5.0;
-
 let upbit;      // ccxt object
 
 let upbitInfo = {
@@ -17,18 +14,13 @@ let upbitInfo = {
   }
 };
 let btc1m = [];
-let counter = 0;
-let lastStatus = {};
-
-
-
 
 function getRSI() {
   console.log('getRSI()', btc1m);
-  if(btc1m.length < 15) {
-    setTimeout(getRSI, 1000 * 5);
+  if(btc1m.length < 66) {
+    setTimeout(getRSI, 1000 * 60);
     return;
-  }     
+  }
   let RSI = {
     U: 0,
     D: 0,
@@ -40,8 +32,8 @@ function getRSI() {
     RSI: 0
   };
   
-  for(var i=0; i<15; i++) {
-    const tmp = btc1m[i] - btc1m[i+1];
+  for(var i=0; i<66; i+=5) {
+    const tmp = btc1m[i] - btc1m[i+5];
     if(tmp < 0) { RSI.D += tmp; RSI.DCounter++; } 
     else { RSI.U += tmp; RSI.UCounter++ }
   }
@@ -50,24 +42,24 @@ function getRSI() {
     return acc + value;
   }, 0);
 
-  RSI.AU = RSI.U / RSI.UCounter;
-  RSI.AD = Math.abs(RSI.D) / RSI.DCounter;
+  RSI.AU = RSI.U / 14;
+  RSI.AD = Math.abs(RSI.D) / 14;
   RSI.RS = RSI.AU / RSI.AD;
-  RSI.RSI = RSI.AU / (RSI.AU + RSI.AD);
-  RSI.RSI = (RSI.RSI * 100).toFixed(2);
+  RSI.RSI = (RSI.AU / (RSI.AU + RSI.AD)) * 100;
+  
 
   console.log(sum, RSI);
   const l = `${getTimeStamp()},${RSI.RSI},${btc1m[0]}`;
   log(l);
   // setTimeout(getRSI, 1000 * 5);
-  // setTimeout(getRSI, 1000 * 60 * 5); // 5분 RSI
-  setTimeout(getRSI, 1000 * 60); // 1분 RSI
+  setTimeout(getRSI, 1000 * 60 * 5); // 5분 RSI
+  // setTimeout(getRSI, 1000 * 60); // 1분 RSI
 }
 
 
 
 const bitTicker = () => {
-  console.log('bitTicker()', btc1m.length);
+  console.log('bitTicker()', btc1m);
   upbit.fetchTicker('BTC/KRW').then((ticker) => {
     btc1m.unshift(ticker ? ticker.last : 0);
   });
