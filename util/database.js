@@ -4,8 +4,8 @@ const async = require('async');
 const mysql = require('mysql');
 const conf = require('../config/db-config');
 
-module.exports.connect = (callback) => {  
-  const connection = mysql.createConnection(conf.dbms);
+module.exports.connect = (callback) => { 
+  const connection = mysql.createConnection(conf);
   connection.connect((error) => {
     if(error) {      
       console.log(error);
@@ -119,7 +119,7 @@ module.exports.insert = (data, resultCallback) => {
       }
     ], (error, result) => {      
       if(error) {
-        console.log(`insert connection end with error`);          
+        console.log(`insert error: ${error}`);          
         resultCallback(error);
       } else {
         console.log(result);        

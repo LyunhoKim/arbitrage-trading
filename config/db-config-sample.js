@@ -8,7 +8,8 @@ const dbms = {
   password: "password",
   host: "host",
   // port: "db port",
-  database: "dbname"
+  database: "dbname",
+  insecureAuth: true
 };
 
 module.exports = dbms;
