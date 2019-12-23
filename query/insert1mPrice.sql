@@ -1,6 +1,6 @@
 
 
-INSERT INTO PRICES
+INSERT INTO prices
 (
   exchange,
   pair,
