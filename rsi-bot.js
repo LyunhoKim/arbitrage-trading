@@ -39,6 +39,7 @@ const rsi = (period) => {
   )
 };
 
+console.log(`rsi-bot startd`);
 setInterval(rsi, 1000 * 60 * RSI05M, RSI05M); // 5분
 setInterval(rsi, 1000 * 60 * RSI15M, RSI15M); // 15분
 setInterval(rsi, 1000 * 60 * RSI30M, RSI30M); // 30분
@@ -49,6 +50,7 @@ function insertRSI(rsi, period, callback) {
     query: sql.insertRSI,
     params: {
       rsi: rsi.RSI,
+      price: rsi.lastPrice,
       period      
     }
     },
@@ -115,6 +117,7 @@ function getRSI(data, callback) {
   RSI.RS = RSI.AU / RSI.AD;
   RSI.RSI = RSI.AU / (RSI.AU + RSI.AD);
   RSI.RSI = parseFloat((RSI.RSI * 100).toFixed(2));
+  RSI.lastPrice = data[data.length-1];
 
   callback(null, RSI);
 }
