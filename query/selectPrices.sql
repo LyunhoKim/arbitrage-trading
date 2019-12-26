@@ -1,0 +1,1 @@
+select price from prices order by id desc limit :period

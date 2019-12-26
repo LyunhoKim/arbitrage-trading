@@ -1,37 +1,101 @@
 'use strict';
 
-// const ccxt = require('ccxt');
+const db = require('./util/database');
+const sql = require('./query');
 const fs = require('fs');
-var request = require('request');
+const async = require('async');
 
-const upbitUrl = `https://api.upbit.com/v1/candles/minutes/5?market=KRW-BTC&count=15`;
+const RSI_TERM = 14; // 14 RSI
+const RSI05M = 5;
+const RSI15M = 15;
+const RSI30M = 30;
+const RSI60M = 60;
 
-const get5MCandle = async (exchange, pair) => {  
-  if(exchange === 'upbit') {        
-    var options = {
-      'method': 'GET',
-      'url': `https://api.upbit.com/v1/candles/minutes/5?market=KRW-${pair}&count=15`,
-      'headers': {
+const rsi = (period) => {
+  async.waterfall(
+    [
+      (callback) => {
+        getPrice(period, callback);
+      },
+      (result, callback) => {
+        selectPriceByPeriod(result, period, callback);
+      },
+      (data, callback) => {
+        getRSI(data, callback);
+      },
+      (rsi, callback) => {
+        insertRSI(rsi, period, callback);
       }
-    };
-    await request(options, function (error, response) { 
-      if (error) throw new Error(error);
-      // console.log(response.body);
-      const res = JSON.parse(response.body);
-      // console.log(res);
-      getRSI(res);
-    });    
-  }
+    ],
+    (error, result) => {
+      if(error) {
+        const msg = `rsi() error: ${error}`;
+        log(msg);
+        return;
+      } else {
+        console.log(result);
+      }
+    }
+  )
 };
 
-get5MCandle('upbit', 'BTC');
+setInterval(rsi, 1000 * 60 * RSI05M, RSI05M); // 5분
+setInterval(rsi, 1000 * 60 * RSI15M, RSI15M); // 15분
+setInterval(rsi, 1000 * 60 * RSI30M, RSI30M); // 30분
+setInterval(rsi, 1000 * 60 * RSI60M, RSI60M); // 60분
 
-function getRSI(data) {
+function insertRSI(rsi, period, callback) {
+  db.insert({
+    query: sql.insertRSI,
+    params: {
+      rsi: rsi.RSI,
+      period      
+    }
+    },
+    (error, result) => {
+      if(error) {
+        const msg = `insert error: ${error}`;
+        callback(msg);
+      } else {
+        console.log(result);
+        callback(null, result);
+      }
+    }
+  )
+};
+
+function getPrice(period, callback) {
+  db.select(
+    {
+      query: sql.selectPrices,
+      params: {
+        period: (RSI_TERM + 1) * period   // 데이터 개수는 RSI Term + 1 개가 필요함
+      }
+    },
+    (error, result) => {
+      if(error) {
+        const msg = `select error: ${error}`;
+        callback(msg);
+      } else {  
+        callback(error, result);
+      }
+    }
+  )
+};
+
+function selectPriceByPeriod(data, period, callback) {
+  let validData = [];
+  for(var i=0; i<data.length; i+=period) {
+    validData.push(data[i].price);
+  }  
+  callback(null, validData);
+};
+
+
+function getRSI(data, callback) {
   let RSI = {
     U: 0,
     D: 0,
-    UCounter: 0,
-    DCounter: 0,
     AU: 0,
     AD: 0,
     RS: 0,
@@ -39,23 +103,20 @@ function getRSI(data) {
   };
   
   for(var i=0; i<data.length-1; i++) {
-    const tmp = data[i].trade_price - data[i+1].trade_price;
-    if(tmp < 0) { RSI.D += tmp; RSI.DCounter++; } 
-    else { RSI.U += tmp; RSI.UCounter++ }
+    const tmp = data[i] - data[i+1];
+    if(tmp < 0)
+      RSI.D += tmp; 
+    else 
+      RSI.U += tmp;
   }
 
-  let sum = data.reduce( (acc, value) => {
-    return acc + value.trade_price;
-  }, 0);
-
-  RSI.AU = RSI.U / RSI.UCounter;
-  RSI.AD = Math.abs(RSI.D) / RSI.DCounter;
+  RSI.AU = RSI.U / RSI_TERM;
+  RSI.AD = Math.abs(RSI.D) / RSI_TERM;
   RSI.RS = RSI.AU / RSI.AD;
   RSI.RSI = RSI.AU / (RSI.AU + RSI.AD);
-  RSI.RSI = (RSI.RSI * 100).toFixed(2);
+  RSI.RSI = parseFloat((RSI.RSI * 100).toFixed(2));
 
-
-  console.log(sum, RSI);
+  callback(null, RSI);
 }
 
 
@@ -68,7 +129,7 @@ function getRSI(data) {
 
 function log(msg) {
   var msg = `${msg}\n<br>`;
-  fs.appendFile('collector.log', msg, 'utf8', (error, data) => {});
+  fs.appendFile('rsi-bot.log', msg, 'utf8', (error, data) => {});
 }
 
 function getTimeStamp() {

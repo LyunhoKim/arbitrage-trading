@@ -77,8 +77,7 @@ module.exports.select = (data, callback) => {
       if(error) {
         console.log(error);
         callback(error);
-      } else {
-        console.log(result);          
+      } else {          
         callback(null, result);
       }
     }
