@@ -1,26 +1,8 @@
-[
-    {
-        "id": "upbit",
-        "info": {
-            "apiKey": "aaa",
-            "secret": "bbb",
-            "enableRateLimit": true
-        }
-    },
-    {
-        "id": "bithumb",
-        "info": {
-            "apiKey": "aaa",
-            "secret": "bbb",
-            "enableRateLimit": true
-        }
-    },
-    {
-        "id": "coinone",
-        "info": {
-            "apiKey": "aaa",
-            "secret": "bbb",
-            "enableRateLimit": true
-        }
-    }
-]
+{
+    "id": "exchange",
+    "apiKey": "key",
+    "secret": "key",
+    "enableRateLimit": true
+    
+  }
+  

@@ -4,12 +4,16 @@ const db = require('./util/database');
 const sql = require('./query');
 const fs = require('fs');
 const async = require('async');
+const ccxt = require('ccxt');
+
+const exchangesConfig = require('./config/exchangesConfig.json');
 
 const RSI_TERM = 14; // 14 RSI
 const RSI05M = 5;
 const RSI15M = 15;
 const RSI30M = 30;
 const RSI60M = 60;
+const orderAmount = 0.0001;
 
 const rsi = (period) => {
   async.waterfall(
@@ -22,6 +26,14 @@ const rsi = (period) => {
       },
       (data, callback) => {
         getRSI(data, callback);
+      },
+      (rsi, callback) => {
+        if(period === 60 && 70 < rsi.RSI) {
+          order('sell', rsi.lastPrice);
+        } else if(period === 60 && rsi.RSI < 30) {
+          order('buy', rsi.lastPrice);
+        }
+        callback(null, rsi);
       },
       (rsi, callback) => {
         insertRSI(rsi, period, callback);
@@ -122,7 +134,34 @@ function getRSI(data, callback) {
   callback(null, RSI);
 }
 
+async function order(order, price) {
+  const upbit = new ccxt['upbit'];
+  upbit.apiKey = exchangesConfig.apiKey;
+  upbit.secret = exchangesConfig.secret;
+  upbit.options['createMarketBuyOrderRequiresPrice'] = true;
 
+  const orderTran = await upbit.createOrder('BTC/KRW', 'market', order, orderAmount, price);
+  console.log(orderTran);
+  const resMsg = `거래단가: ${price}\n 거래금액: ${orderTran.info.price}\n 수수료: ${orderTran.info.reserved_fee}`;
+  sendSlackMsg(resMsg);
+};
+
+function sendSlackMsg(msg) {
+  var request = require('request');
+  var options = {
+    'method': 'POST',
+    'url': 'https://hooks.slack.com/services/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',
+    'headers': {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({"channel":"#upbit-rsi","text":msg,"username":"upbit-rsi","icon_emoji":":ghost:"})
+  };
+
+  request(options, function (error, response) { 
+    if (error) throw new Error(error);
+    console.log(response.body);
+  });
+}
 
 /**
  * **********************************************************************
@@ -133,29 +172,4 @@ function getRSI(data, callback) {
 function log(msg) {
   var msg = `${msg}\n<br>`;
   fs.appendFile('rsi-bot.log', msg, 'utf8', (error, data) => {});
-}
-
-function getTimeStamp() {
-  let d = new Date();
-  let s =
-    leadingZeros(d.getFullYear(), 4) + '-' +
-    leadingZeros(d.getMonth() + 1, 2) + '-' +
-    leadingZeros(d.getDate(), 2) + ' ' +
-
-    leadingZeros(d.getHours(), 2) + ':' +
-    leadingZeros(d.getMinutes(), 2) + ':' +
-    leadingZeros(d.getSeconds(), 2);
-
-  return s;
-}
-
-function leadingZeros(n, digits) {
-  let zero = '';
-  n = n.toString();
-
-  if (n.length < digits) {
-    for (let i = 0; i < digits - n.length; i++)
-      zero += '0';
-  }
-  return zero + n;
 }
