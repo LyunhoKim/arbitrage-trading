@@ -13,7 +13,7 @@ const RSI05M = 5;
 const RSI15M = 15;
 const RSI30M = 30;
 const RSI60M = 60;
-const orderAmount = 0.0001;
+const orderAmount = 0.0002;
 
 const rsi = (period) => {
   async.waterfall(
@@ -52,10 +52,10 @@ const rsi = (period) => {
 };
 
 console.log(`rsi-bot startd`);
-setInterval(rsi, 1000 * 60 * RSI05M, RSI05M); // 5분
-setInterval(rsi, 1000 * 60 * RSI15M, RSI15M); // 15분
-setInterval(rsi, 1000 * 60 * RSI30M, RSI30M); // 30분
-setInterval(rsi, 1000 * 60 * RSI60M, RSI60M); // 60분
+rsi(RSI05M); setInterval(rsi, 1000 * 60 * RSI05M, RSI05M); // 5분
+rsi(RSI15M); setInterval(rsi, 1000 * 60 * RSI15M, RSI15M); // 15분
+rsi(RSI30M); setInterval(rsi, 1000 * 60 * RSI30M, RSI30M); // 30분
+rsi(RSI60M); setInterval(rsi, 1000 * 60 * RSI60M, RSI60M); // 60분
 
 function insertRSI(rsi, period, callback) {
   db.insert({
@@ -90,7 +90,10 @@ function getPrice(period, callback) {
       if(error) {
         const msg = `select error: ${error}`;
         callback(msg);
-      } else {  
+      } else if (result.length < (RSI_TERM + 1) * period) {
+        const msg = `not enough data: peride(${period}), data length(${result.length})`;
+        callback(msg);
+      }else {  
         callback(error, result);
       }
     }
