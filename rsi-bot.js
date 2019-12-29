@@ -7,6 +7,7 @@ const async = require('async');
 const ccxt = require('ccxt');
 
 const exchangesConfig = require('./config/exchangesConfig.json');
+const slackConfig = require('./config/slack-config.json');
 
 const RSI_TERM = 14; // 14 RSI
 const RSI05M = 5;
@@ -153,7 +154,7 @@ function sendSlackMsg(msg) {
   var request = require('request');
   var options = {
     'method': 'POST',
-    'url': 'https://hooks.slack.com/services/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',
+    'url': `${slackConfig.baseUrl}/${slackConfig.token}`,
     'headers': {
       'Content-Type': 'application/json'
     },

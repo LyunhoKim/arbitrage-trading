@@ -106,5 +106,11 @@ dist
 # Exchange API Key
 exchangesConfig.json
 
+# slack url, token
+slack-config.json
+
 # dbms configuration
 db-config.js
+
+#test files
+*Test.js
