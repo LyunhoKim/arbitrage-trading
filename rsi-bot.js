@@ -29,9 +29,9 @@ const rsi = (period) => {
         getRSI(data, callback);
       },
       (rsi, callback) => {
-        if(period === 60 && 70 < rsi.RSI) {
+        if(period === RSI60M && 75 < rsi.RSI) {
           order('sell', rsi.lastPrice);
-        } else if(period === 60 && rsi.RSI < 30) {
+        } else if(period === RSI60M && rsi.RSI < 25) {
           order('buy', rsi.lastPrice);
         }
         callback(null, rsi);
