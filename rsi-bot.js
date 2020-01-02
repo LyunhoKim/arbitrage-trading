@@ -146,7 +146,7 @@ async function order(order, price) {
 
   const orderTran = await upbit.createOrder('BTC/KRW', 'market', order, orderAmount, price);
   console.log(orderTran);
-  const resMsg = `거래단가: ${price}\n 거래금액: ${orderTran.info.price}\n 수수료: ${orderTran.info.reserved_fee}`;
+  const resMsg = `거래: ${order}\n거래단가: ${price}\n거래금액: ${orderTran.info.price}\n수수료: ${orderTran.info.reserved_fee}`;
   sendSlackMsg(resMsg);
 };
 
