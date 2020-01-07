@@ -133,7 +133,7 @@ function getRSI(data, callback) {
   RSI.RS = RSI.AU / RSI.AD;
   RSI.RSI = RSI.AU / (RSI.AU + RSI.AD);
   RSI.RSI = parseFloat((RSI.RSI * 100).toFixed(2));
-  RSI.lastPrice = data[data.length-1];
+  RSI.lastPrice = data[0];
 
   callback(null, RSI);
 }
