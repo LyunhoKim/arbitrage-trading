@@ -14,7 +14,7 @@ const RSI05M = 5;
 const RSI15M = 15;
 const RSI30M = 30;
 const RSI60M = 60;
-const orderAmount = 0.0002;
+const orderAmount = 0.005;
 
 const rsi = (period) => {
   async.waterfall(
@@ -29,9 +29,9 @@ const rsi = (period) => {
         getRSI(data, callback);
       },
       (rsi, callback) => {
-        if(period === RSI60M && 75 < rsi.RSI) {
+        if(period === RSI60M && 80 < rsi.RSI) {
           order('sell', rsi.lastPrice);
-        } else if(period === RSI60M && rsi.RSI < 25) {
+        } else if(period === RSI60M && rsi.RSI < 20) {
           order('buy', rsi.lastPrice);
         }
         callback(null, rsi);
