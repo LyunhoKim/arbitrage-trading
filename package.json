@@ -10,7 +10,7 @@
   "author": "Lyunho Kim",
   "license": "ISC",
   "dependencies": {
-    "async": "^3.1.0",
+    "async": "^3.2.2",
     "ccxt": "^1.19.4",
     "express": "^4.17.1",
     "fs": "0.0.1-security",
